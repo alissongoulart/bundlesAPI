@@ -1,0 +1,35 @@
+{
+  "diagram":{
+    "1":{"id":1,"name":"Diagram1"}
+  },
+  "bundle":{
+    "1":{"id":1,"type":"bb","price":40,"name":"Broadband1"},
+    "2":{"id":2,"type":"bb","price":60,"name":"Broadband2"},
+    "3":{"id":3,"type":"addon","price":10,"name":"AddonBB"},
+    "4":{"id":4,"type":"tv","price":50,"name":"TV1"},
+    "5":{"id":5,"type":"ll","price":35,"name":"Landline"},
+    "6":{"id":6,"type":"tv","price":120,"name":"TV2"},
+    "7":{"id":7,"type":"addon","price":0,"name":"AddonTV"}
+  },
+  "diagramBundle":{
+    "1":{"diagram":1,"bundle":1},
+    "2":{"diagram":1,"bundle":2},
+    "3":{"diagram":1,"bundle":3},
+    "4":{"diagram":1,"bundle":4},
+    "5":{"diagram":1,"bundle":5},
+    "6":{"diagram":1,"bundle":6},
+    "7":{"diagram":1,"bundle":7}
+  },
+  "bundleRelation":{
+    "1":{"from":1,"to":3,"diagram":1,"operationValue":0},
+    "2":{"from":1,"to":5,"diagram":1,"operationValue":-40},
+    "3":{"from":2,"to":4,"diagram":1,"operationValue":-10},
+    "4":{"from":2,"to":5,"diagram":1,"operationValue":-40},
+    "5":{"from":2,"to":6,"diagram":1,"operationValue":-20},
+    "6":{"from":2,"to":3,"diagram":1,"operationValue":-10},
+    "7":{"from":4,"to":5,"diagram":1,"operationValue":-10},
+    "8":{"from":4,"to":7,"diagram":1,"operationValue":35},
+    "9":{"from":6,"to":5,"diagram":1,"operationValue":-30},
+    "10":{"from":6,"to":7,"diagram":1,"operationValue":15}
+  }
+}
