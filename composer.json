@@ -3,5 +3,9 @@
     "psr-4": {
       "App\\": "src/"
     }
+  },
+  "require": {
+    "phroute/phroute": "^2.1",
+    "pimple/pimple": "^3.2"
   }
 }
