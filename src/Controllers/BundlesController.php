@@ -37,7 +37,7 @@ class BundlesController
      */
     private function sortByPrice($array)
     {
-        $array[] = usort($array, function($a, $b) {
+        usort($array, function($a, $b) {
             return $a['price'] - $b['price'];
         });
 
