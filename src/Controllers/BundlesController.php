@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 use App\Support\Model\Contracts\ModelInterface;
 
-class Controller
+class BundlesController
 {
     private $bundle;
     private $diagram;
@@ -21,14 +21,14 @@ class Controller
     }
 
     /**
-     *
+     * @return string
      */
     public function getBroadBandCombinations()
     {
         $broadBands = $this->getBroadBands();
         $combinations = $this->setCombinations($broadBands, "", 0);
 
-        echo json_encode($this->sortByPrice($combinations), true);
+        return json_encode($this->sortByPrice($combinations));
     }
 
     /**

@@ -4,18 +4,18 @@ namespace App\Models;
 
 use App\Support\Model\Model;
 
-class Bundle extends Model
+class Bundles extends Model
 {
     protected $index = 'bundle';
     protected $relations = [
         'belongsToMany' => [
             'diagram' => [
-                'class' => Diagram::class,
+                'class' => Diagrams::class,
                 'indexRelation' => 'diagramBundle',
                 'mappedBy' => 'bundle'
             ],
             'from' => [
-                'class' => Bundle::class,
+                'class' => Bundles::class,
                 'indexRelation' => 'bundleRelation',
                 'mappedBy' => 'to'
             ]

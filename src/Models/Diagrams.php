@@ -4,12 +4,12 @@ namespace App\Models;
 
 use App\Support\Model\Model;
 
-class Diagram extends Model
+class Diagrams extends Model
 {
     protected $index = "diagram";
     protected $relations = [
         'hasMany' => [
-            'class' => Bundle::class,
+            'class' => Bundles::class,
             'indexRelation' => 'diagramBundle',
             'mappedBy' => 'diagram'
         ]
