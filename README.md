@@ -13,5 +13,5 @@ PHP >= 5.6
 composer install
 composer dump-autoload -o
 php -S localhost:8000
-curl http://localhost:8000/list-all-broadband
+curl -X POST http://localhost:8000/list-all-broadband
 ```
