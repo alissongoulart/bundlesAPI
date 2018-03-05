@@ -1,6 +1,6 @@
 # Bundles REST Interface
 
-A REST interface which provides all possible combinations for broadbands.
+A REST interface which provides all possible combinations for broadband bundles.
 
 ## Requirements
 ```
