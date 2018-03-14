@@ -211,7 +211,7 @@ class BundlesController
      * @param $bundles
      * @return array|mixed
      */
-    public function getTree($bundles)
+    private function getTree($bundles)
     {
         $tree = [];
         foreach ($bundles as $bundle) {
