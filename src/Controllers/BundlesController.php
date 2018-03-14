@@ -25,14 +25,15 @@ class BundlesController
      */
     public function getBroadBandCombinations()
     {
-        $broadBandsTree = [];
+        $tree = [];
         $broadBands = $this->getBroadBands();
 
         foreach ($broadBands as $broadBand) {
-            $broadBandsTree = array_merge($broadBandsTree, $this->getTree([$broadBand]));
+            $tree = array_merge($tree, $this->getTree([$broadBand]));
         }
 
-        $combinations = $this->setCombinations($broadBandsTree, "", 0, []);
+        $normalizedTree =  $this->getNormalizedTree($tree);
+        $combinations = $this->setCombinations($normalizedTree, "", 0, []);
 
         return json_encode($this->sortByPrice($combinations));
     }
@@ -166,6 +167,10 @@ class BundlesController
         }
     }
 
+    /**
+     * @param $bundles
+     * @return mixed
+     */
     private function getNormalizedTree($bundles)
     {
         $normalizedThree = [];
@@ -174,16 +179,22 @@ class BundlesController
             if (count($bundle["children"]) > 0) {
                 $normalizedThree1 = $normalizedThree;
                 for ($j = count($normalizedThree1); $j < count($bundles[$indexBundle]["children"]); $j++) {
-                    $aux = $bundles[$indexBundle]["children"][$j]["children"];
-                    $bundles[$indexBundle]["children"][$j]["children"] = array_merge($normalizedThree1, $bundles[$indexBundle]["children"][$j]["children"]);
-                    if (count($aux) > 0) {
+                    $countChildren = count($bundles[$indexBundle]["children"][$j]["children"]);
+                    $bundles[$indexBundle]["children"][$j]["children"] = array_merge(
+                        $normalizedThree1,
+                        $bundles[$indexBundle]["children"][$j]["children"]
+                    );
+                    if ($countChildren > 0) {
                         $normalizedThree2 = $normalizedThree1;
                         for ($k = count($normalizedThree2); $k < count($bundles[$indexBundle]["children"][$j]["children"]); $k++) {
-                            $aux = $bundles[$indexBundle]["children"][$j]["children"][$k]["children"];
-                            $bundles[$indexBundle]["children"][$j]["children"][$k]["children"] = array_merge($normalizedThree2, $bundles[$indexBundle]["children"][$j]["children"][$k]["children"]);
-                            if (count($aux) > 0) {
-
-                            }
+//                            $countChildren = count($bundles[$indexBundle]["children"][$j]["children"][$k]["children"]);
+                            $bundles[$indexBundle]["children"][$j]["children"][$k]["children"] = array_merge(
+                                $normalizedThree2,
+                                $bundles[$indexBundle]["children"][$j]["children"][$k]["children"]
+                            );
+//                            if ($countChildren > 0) {
+//
+//                            }
                             $normalizedThree2[] = $bundles[$indexBundle]["children"][$j]['children'][$k];
                         }
                     }
@@ -195,46 +206,22 @@ class BundlesController
 
         return $bundles;
     }
-    
-    
+
+    /**
+     * @param $bundles
+     * @return array|mixed
+     */
     public function getTree($bundles)
     {
         $tree = [];
-        foreach ($bundles as $index => $bundle) {
-            $children = [];
-            if (count($bundle->getRelatedBundles()) > 0) {
-                foreach ($bundle->getRelatedBundles() as $relatedBundle) {
-                    $children1 = [];
-                    if (count($relatedBundle->getRelatedBundles()) > 0) {
-                        foreach ($relatedBundle->getRelatedBundles() as $relatedBundleChild) {
-                            $children1[] = [
-                                "name" => $relatedBundleChild->name,
-                                "type" => $relatedBundleChild->type,
-                                "price" => $relatedBundleChild->price,
-                                "children" => []
-                            ];
-                        }
-                    }
-
-                    $children[] = [
-                        "name" => $relatedBundle->name,
-                        "type" => $relatedBundle->type,
-                        "price" => $relatedBundle->price,
-                        "children" => $children1
-                    ];
-                }
-            }
-
+        foreach ($bundles as $bundle) {
             $tree[] = [
                 "name" => $bundle->name,
                 "type" => $bundle->type,
                 "price" => $bundle->price,
-                "children" => $children
+                "children" => $this->getTree($bundle->getRelatedBundles())
             ];
-
         }
-        $tree = $this->getNormalizedTree($tree);
-
         return $tree;
     }
 }
