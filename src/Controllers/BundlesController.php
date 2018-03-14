@@ -32,7 +32,7 @@ class BundlesController
             $broadBandsTree = array_merge($broadBandsTree, $this->getTree([$broadBand]));
         }
 
-        $combinations = $this->setCombinations($broadBandsTree, "", 0);
+        $combinations = $this->setCombinations($broadBandsTree, "", 0, []);
 
         return json_encode($this->sortByPrice($combinations));
     }
@@ -87,25 +87,53 @@ class BundlesController
      * @param $price
      * @return array
      */
-    private function setCombinations($bundles, $name, $price)
+    private function setCombinations($bundles, $name, $price, $addedValues)
     {
         $combinations = [];
         foreach ($bundles as $bundle) {
-            $name = $this->setCombinationName($name, $bundle["name"]);
-            $price += $bundle["price"];
-            $combinations[] = $this->addCombination($name, $price);
-            if (count($bundle["children"]) > 0) {
-                $combinations = array_merge(
-                    $combinations,
-                    $this->setCombinations($bundle["children"], $name, $price)
-                );
+            if (!$this->existRestriction($addedValues, $bundle)) {
+                $name = $this->setCombinationName($name, $bundle["name"]);
+                $price += $bundle["price"];
+                $combinations[] = $this->addCombination($name, $price);
+                $addedValues[$bundle["name"]] = [
+                    "type" => $bundle['type'],
+                    "name" => $bundle['name']
+                ];
+
+                if (count($bundle["children"]) > 0) {
+                    $combinations = array_merge(
+                        $combinations,
+                        $this->setCombinations($bundle["children"], $name, $price, $addedValues)
+                    );
+                }
+
+                unset($addedValues[$bundle["name"]]);
+                $name = $this->clearCombinationName($name, $bundle["name"]);
+                $price -= $bundle["price"];
             }
 
-            $name = $this->clearCombinationName($name, $bundle["name"]);
-            $price -= $bundle["price"];
         }
 
         return $combinations;
+    }
+
+    private function existRestriction($addedValues, $bundle)
+    {
+        if (count($addedValues) > 0) {
+            foreach ($addedValues as $addedValue) {
+                if ($bundle["type"] == $addedValue["type"]) {
+                    if ($bundle["type"] !== "addon") {
+                       return true;
+                    }
+
+                    if ($bundle["name"] == $addedValues['name']) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
