@@ -131,4 +131,32 @@ class BundlesController
             return "";
         }
     }
+
+    private function getNormalizedTree($bundles)
+    {
+        $normalizedThree = [];
+        foreach ($bundles as $indexBundle => $bundle) {
+            $bundles[$indexBundle]["children"] = array_merge($normalizedThree, $bundles[$indexBundle]["children"]);
+            if (count($bundle["children"]) > 0) {
+                $normalizedThree1 = [];
+                foreach ($bundle['children'] as $indexChildren => $children) {
+                    $bundles[$indexBundle]["children"][$indexChildren]["children"] = array_merge($normalizedThree1, $bundles[$indexBundle]["children"][$indexChildren]["children"]);
+                    if (count($children["children"]) > 0) {
+                        $normalizedThree2 = $normalizedThree1;
+                        for ($k = count($normalizedThree2); $k <= count($children['children']); $k++) {
+                            $bundles[$indexBundle]["children"][$indexChildren]["children"][$k]["children"] = array_merge($normalizedThree2, $bundles[$indexBundle]["children"][$indexChildren]["children"][$k]["children"]);
+                            if (count($bundles[$indexBundle]["children"][$indexChildren]["children"][$k]["children"]) > 0) {
+
+                            }
+                            $normalizedThree2[] = $bundles[$indexBundle]["children"][$indexChildren]['children'][$k];
+                        }
+                    }
+                    $normalizedThree1[] = $bundles[$indexBundle]["children"][$indexChildren];
+                }
+            }
+            $normalizedThree[] = $bundles[$indexBundle];
+        }
+
+        return $bundles;
+    }
 }
