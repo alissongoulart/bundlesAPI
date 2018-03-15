@@ -29,10 +29,14 @@ class BundlesController
         $broadBands = $this->getBroadBands();
 
         foreach ($broadBands as $broadBand) {
+            //Get the default tree, according the challenge proposed
             $tree = array_merge($tree, $this->getTree([$broadBand]));
         }
 
-        $this->getNormalizedTree($tree, []);
+        //Normalize the tree in order to go through all possible combinations
+        $this->normalizeTree($tree, []);
+
+        //Get all combinations
         $combinations = $this->setCombinations($tree, "", 0, []);
 
         return json_encode($this->sortByPrice($combinations));
@@ -174,20 +178,20 @@ class BundlesController
     }
 
     /**
-     * @param $bundles
+     * @param $nodes
      * @param $parent
      */
-    private function getNormalizedTree(&$bundles, $parent)
+    private function normalizeTree(&$nodes, $parent)
     {
         $tempNodes = $parent;
 
-        for ($i = count($tempNodes); $i < count($bundles); $i++) {
-            $countChildren = count($bundles[$i]["children"]);
-            $bundles[$i]["children"] = array_merge($tempNodes, $bundles[$i]["children"]);
+        for ($i = count($tempNodes); $i < count($nodes); $i++) {
+            $countChildren = count($nodes[$i]["children"]);
+            $nodes[$i]["children"] = array_merge($tempNodes, $nodes[$i]["children"]);
             if ($countChildren > 0) {
-                $this->getNormalizedTree($bundles[$i]["children"], $tempNodes);
+                $this->normalizeTree($nodes[$i]["children"], $tempNodes);
             }
-            $tempNodes[] = $bundles[$i];
+            $tempNodes[] = $nodes[$i];
         }
     }
 
