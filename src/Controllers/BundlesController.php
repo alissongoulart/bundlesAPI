@@ -32,8 +32,8 @@ class BundlesController
             $tree = array_merge($tree, $this->getTree([$broadBand]));
         }
 
-        $normalizedTree =  $this->getNormalizedTree($tree);
-        $combinations = $this->setCombinations($normalizedTree, "", 0, []);
+        $this->getNormalizedTree($tree, []);
+        $combinations = $this->setCombinations($tree, "", 0, []);
 
         return json_encode($this->sortByPrice($combinations));
     }
@@ -118,6 +118,12 @@ class BundlesController
         return $combinations;
     }
 
+    /**
+     * Check if there is some restriction in add the bundle at the chain.
+     * @param $addedValues
+     * @param $bundle
+     * @return bool
+     */
     private function existRestriction($addedValues, $bundle)
     {
         if (count($addedValues) > 0) {
@@ -169,42 +175,20 @@ class BundlesController
 
     /**
      * @param $bundles
-     * @return mixed
+     * @param $parent
      */
-    private function getNormalizedTree($bundles)
+    private function getNormalizedTree(&$bundles, $parent)
     {
-        $normalizedThree = [];
-        for ($i = count($normalizedThree); $i < count($bundles[$i]["children"]); $i++) {
-            $bundles[$i]["children"] = array_merge($normalizedThree, $bundles[$i]["children"]);
-            if (count($bundles[$i]["children"]) > 0) {
-                $normalizedThree1 = $normalizedThree;
-                for ($j = count($normalizedThree1); $j < count($bundles[$i]["children"]); $j++) {
-                    $countChildren = count($bundles[$i]["children"][$j]["children"]);
-                    $bundles[$i]["children"][$j]["children"] = array_merge(
-                        $normalizedThree1,
-                        $bundles[$i]["children"][$j]["children"]
-                    );
-                    if ($countChildren > 0) {
-                        $normalizedThree2 = $normalizedThree1;
-                        for ($k = count($normalizedThree2); $k < count($bundles[$i]["children"][$j]["children"]); $k++) {
-//                            $countChildren = count($bundles[$i]["children"][$j]["children"][$k]["children"]);
-                            $bundles[$i]["children"][$j]["children"][$k]["children"] = array_merge(
-                                $normalizedThree2,
-                                $bundles[$i]["children"][$j]["children"][$k]["children"]
-                            );
-//                            if ($countChildren > 0) {
-//
-//                            }
-                            $normalizedThree2[] = $bundles[$i]["children"][$j]['children'][$k];
-                        }
-                    }
-                    $normalizedThree1[] = $bundles[$i]["children"][$j];
-                }
-            }
-            $normalizedThree[] = $bundles[$i];
-        }
+        $tempNodes = $parent;
 
-        return $bundles;
+        for ($i = count($tempNodes); $i < count($bundles); $i++) {
+            $countChildren = count($bundles[$i]["children"]);
+            $bundles[$i]["children"] = array_merge($tempNodes, $bundles[$i]["children"]);
+            if ($countChildren > 0) {
+                $this->getNormalizedTree($bundles[$i]["children"], $tempNodes);
+            }
+            $tempNodes[] = $bundles[$i];
+        }
     }
 
     /**
