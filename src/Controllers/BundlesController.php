@@ -25,8 +25,19 @@ class BundlesController
      */
     public function getBroadBandCombinations()
     {
+        $tree = [];
         $broadBands = $this->getBroadBands();
-        $combinations = $this->setCombinations($broadBands, "", 0);
+
+        foreach ($broadBands as $broadBand) {
+            //Get the default tree, according the challenge proposed
+            $tree = array_merge($tree, $this->getTree([$broadBand]));
+        }
+
+        //Normalize the tree in order to go through all possible combinations
+        $this->normalizeTree($tree, []);
+
+        //Get all combinations
+        $combinations = $this->setCombinations($tree, "", 0, []);
 
         return json_encode($this->sortByPrice($combinations));
     }
@@ -45,7 +56,7 @@ class BundlesController
     }
 
     /**
-     * @return \App\Support\Model\Contracts\Model|array
+     * @return \App\Support\Model\Model|array
      */
     private function getBroadBands()
     {
@@ -81,25 +92,59 @@ class BundlesController
      * @param $price
      * @return array
      */
-    private function setCombinations($bundles, $name, $price)
+    private function setCombinations($bundles, $name, $price, $addedValues)
     {
         $combinations = [];
         foreach ($bundles as $bundle) {
-            $name = $this->setCombinationName($name, $bundle->name);
-            $price += $bundle->price;
-            $combinations[] = $this->addCombination($name, $price);
-            if (count($bundle->getRelatedBundles()) > 0) {
-                $combinations = array_merge(
-                    $combinations,
-                    $this->setCombinations($bundle->getRelatedBundles(), $name, $price)
-                );
+            if (!$this->existRestriction($addedValues, $bundle)) {
+                $name = $this->setCombinationName($name, $bundle["name"]);
+                $price += $bundle["price"];
+                $combinations[] = $this->addCombination($name, $price);
+                $addedValues[$bundle["name"]] = [
+                    "type" => $bundle['type'],
+                    "name" => $bundle['name']
+                ];
+
+                if (count($bundle["children"]) > 0) {
+                    $combinations = array_merge(
+                        $combinations,
+                        $this->setCombinations($bundle["children"], $name, $price, $addedValues)
+                    );
+                }
+
+                unset($addedValues[$bundle["name"]]);
+                $name = $this->clearCombinationName($name, $bundle["name"]);
+                $price -= $bundle["price"];
             }
 
-            $name = $this->clearCombinationName($name, $bundle->name);
-            $price -= $bundle->price;
         }
 
         return $combinations;
+    }
+
+    /**
+     * Check if there is some restriction in add the bundle at the chain.
+     * @param $addedValues
+     * @param $bundle
+     * @return bool
+     */
+    private function existRestriction($addedValues, $bundle)
+    {
+        if (count($addedValues) > 0) {
+            foreach ($addedValues as $addedValue) {
+                if ($bundle["type"] == $addedValue["type"]) {
+                    if ($bundle["type"] !== "addon") {
+                       return true;
+                    }
+
+                    if ($bundle["name"] == $addedValues['name']) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -130,5 +175,41 @@ class BundlesController
         } else {
             return "";
         }
+    }
+
+    /**
+     * @param $nodes
+     * @param $parent
+     */
+    private function normalizeTree(&$nodes, $parent)
+    {
+        $tempNodes = $parent;
+
+        for ($i = count($tempNodes); $i < count($nodes); $i++) {
+            $countChildren = count($nodes[$i]["children"]);
+            $nodes[$i]["children"] = array_merge($tempNodes, $nodes[$i]["children"]);
+            if ($countChildren > 0) {
+                $this->normalizeTree($nodes[$i]["children"], $tempNodes);
+            }
+            $tempNodes[] = $nodes[$i];
+        }
+    }
+
+    /**
+     * @param $bundles
+     * @return array|mixed
+     */
+    private function getTree($bundles)
+    {
+        $tree = [];
+        foreach ($bundles as $bundle) {
+            $tree[] = [
+                "name" => $bundle->name,
+                "type" => $bundle->type,
+                "price" => $bundle->price,
+                "children" => $this->getTree($bundle->getRelatedBundles())
+            ];
+        }
+        return $tree;
     }
 }
